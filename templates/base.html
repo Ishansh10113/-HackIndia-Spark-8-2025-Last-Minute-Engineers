@@ -1,0 +1,171 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}EquiTerra - Invest in Earth, Digitally{% endblock %}</title>
+
+  <style>
+    :root {
+      --primary-color: #4b3a28;
+      --secondary-color: #c9a86b;
+      --accent-color: #fdf8f3;
+      --text-color: #4b443e;
+      --text-secondary: #7b6d59;
+      --card-bg: #fff9f2;
+      --section-bg: #f6eee3;
+      --border-color: #e6dac6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--accent-color);
+      color: var(--text-color);
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    h1, h2, h3, h4, h5 {
+      font-family: 'Georgia', serif;
+    }
+
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 2px 10px rgba(150, 130, 90, 0.05);
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+
+    nav {
+      display: flex;
+      gap: 1.2rem;
+    }
+
+    nav a {
+      color: var(--text-secondary);
+      font-weight: 500;
+      text-decoration: none;
+      position: relative;
+      padding-bottom: 4px;
+      transition: color 0.3s ease;
+    }
+
+    nav a::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0%;
+      height: 2px;
+      background: var(--primary-color);
+      transition: width 0.3s ease;
+    }
+
+    nav a:hover,
+    nav a.active {
+      color: var(--primary-color);
+    }
+
+    nav a:hover::after,
+    nav a.active::after {
+      width: 100%;
+    }
+
+    .button {
+      padding: 0.6rem 1.2rem;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .button:hover {
+      background-color: var(--secondary-color);
+    }
+
+    main {
+      padding: 2rem;
+      animation: fadeIn 0.6s ease-in-out;
+    }
+
+    footer {
+      background-color: var(--section-bg);
+      padding: 2rem;
+      text-align: center;
+      border-top: 1px solid var(--border-color);
+      margin-top: 4rem;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+
+  {% block extra_css %}{% endblock %}
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <header>
+    <a href="{% url 'home' %}" class="logo">EquiTerra</a>
+    <nav>
+      <a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a>
+      <a href="{% url 'marketplace' %}" class="{% if request.resolver_match.url_name == 'marketplace' %}active{% endif %}">Marketplace</a>
+      <a href="{% url 'mint' %}" class="{% if request.resolver_match.url_name == 'mint' %}active{% endif %}">New Property</a>
+      <a href="{% url 'analyze' %}" class="{% if request.resolver_match.url_name == 'analyze' %}active{% endif %}">AI Insights</a>
+      <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Dashboard</a>
+    </nav>
+    <div>
+      {% if user.is_authenticated %}
+        <a href="{% url 'dashboard' %}" class="button">{{ user.first_name }}</a>
+        <a href="{% url 'logout' %}" class="button" style="margin-left: 1rem;">Logout</a>
+      {% else %}
+        <a href="{% url 'login' %}" class="button">Login</a>
+        <a href="{% url 'register' %}" class="button" style="margin-left: 1rem;">Sign Up</a>
+      {% endif %}
+    </div>
+  </header>
+
+  {% if messages %}
+    <div style="max-width: 900px; margin: 1rem auto; padding: 1rem;">
+      {% for message in messages %}
+        <div style="background: #fef4e8; border-left: 5px solid var(--primary-color); padding: 1rem; margin-bottom: 0.5rem;">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <main>{% block content %}{% endblock %}</main>
+
+  <footer>
+    EquiTerra &copy; 2025 – Bridging Real Estate & Startups Through Blockchain.
+  </footer>
+</body>
+</html>

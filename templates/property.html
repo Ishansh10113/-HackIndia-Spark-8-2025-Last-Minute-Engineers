@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}Property Details - EquiTerra{% endblock %}
+
+{% block extra_css %}
+<style>
+.property-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  background-color: var(--card-bg);
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 6px 24px rgba(160, 140, 100, 0.08);
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+.property-container h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+  font-family: 'Georgia', serif;
+}
+
+.property-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.property-meta span {
+  display: inline-block;
+  background-color: var(--section-bg);
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  font-size: 0.9rem;
+  border: 1px solid var(--border-color);
+}
+
+.property-actions {
+  margin-top: 2rem;
+}
+
+.action-button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.action-button:hover {
+  background-color: var(--secondary-color);
+}
+
+.fractional-box {
+  background-color: var(--section-bg);
+  padding: 2rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border-color);
+  margin-top: 2.5rem;
+  box-shadow: 0 4px 14px rgba(180, 160, 120, 0.05);
+}
+
+.fractional-box h3 {
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+.fractional-box label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  display: block;
+  color: var(--text-color);
+}
+
+.fractional-box input {
+  padding: 0.6rem;
+  font-size: 1rem;
+  border-radius: 0.4rem;
+  border: 1px solid var(--border-color);
+  width: 100%;
+  margin-bottom: 1rem;
+  background-color: #fff;
+  color: var(--text-color);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="property-container">
+  <h1>{{ property.house_type }} in {{ property.city }}</h1>
+
+  <div class="property-meta">
+    <span>🛏 {{ property.beds|default:"N/A" }} Beds</span>
+    <span>🛁 {{ property.bathrooms|default:"N/A" }} Baths</span>
+    <span>📐 {{ property.area|default:"N/A" }} sqft</span>
+    <span>🌿 {{ property.furnishing|default:"N/A" }}</span>
+    <span>🌄 {{ property.balconies|default:"N/A" }} Balconies</span>
+  </div>
+
+  <p><strong>Owner:</strong> {{ property.owner.username|default:"Unknown" }}</p>
+
+  <div class="property-actions">
+    {% if user.is_authenticated %}
+      {% if property_type == 'sale' %}
+        <button class="action-button" onclick="buyWithMetaMask({{ property.id }}, {{ property.sale_price|default:0 }})">
+          Buy with MetaMask
+        </button>
+      {% else %}
+        <button class="action-button" onclick="rentWithMetaMask({{ property.id }}, {{ property.rent|default:0 }})">
+          Rent with MetaMask
+        </button>
+      {% endif %}
+    {% else %}
+      <a href="{% url 'login' %}" class="action-button">Login to {% if property_type == 'sale' %}Buy{% else %}Rent{% endif %}</a>
+    {% endif %}
+  </div>
+
+  {% if property_type == 'sale' %}
+  <div class="fractional-box">
+    <h3>Fractional Ownership</h3>
+    <form method="POST" action="{% url 'property_action' property.id 'sale' %}">
+      {% csrf_token %}
+      <label for="units-{{ property.id }}">Units to buy (max {{ units_available|default:0 }}):</label>
+      <input type="number" id="units-{{ property.id }}" name="units" value="1" min="1" max="{{ units_available|default:1 }}"
+             onchange="updateTotal({{ property.id }}, {{ unit_price|default:0 }})">
+      <p>Unit price: {{ unit_price|floatformat:4|default:"0.0000" }} ETH</p>
+      <p>Total: <span id="totalPrice-{{ property.id }}">{{ unit_price|floatformat:4|default:"0.0000" }}</span> ETH</p>
+      <button type="button" class="action-button" onclick="buyUnitsWithMetaMask({{ property.id }}, '{{ unit_price|default:"0" }}')">
+        Buy Units
+      </button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+<script>
+const contractABI = {{ contract_abi|safe }};
+const contractAddress = "{{ contract_address|default:'0x0000000000000000000000000000000000000000' }}";
+
+function updateTotal(propertyId, unitPrice) {
+  const units = document.getElementById(units-${propertyId}).value;
+  const total = (parseFloat(units) * parseFloat(unitPrice)).toFixed(4);
+  document.getElementById(totalPrice-${propertyId}).innerText = total;
+}
+
+async function buyWithMetaMask(propertyId, priceInEth) {
+  if (!window.ethereum) {
+    alert("MetaMask is not installed.");
+    return;
+  }
+
+  try {
+    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+    const web3 = new Web3(window.ethereum);
+    const priceInWei = web3.utils.toWei(priceInEth.toString(), 'ether');
+    const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+    await contract.methods.buyProperty(propertyId).send({
+      from: accounts[0],
+      value: priceInWei
+    });
+
+    alert("Property purchased!");
+    location.reload();
+  } catch (err) {
+    console.error(err);
+    alert("Transaction failed.");
+  }
+}
+
+async function buyUnitsWithMetaMask(propertyId, unitPriceInEth) {
+  const input = document.getElementById(units-${propertyId});
+  const unitsToBuy = parseInt(input.value);
+
+  if (isNaN(unitsToBuy) || unitsToBuy <= 0) {
+    alert("Enter valid units.");
+    return;
+  }
+
+  if (!window.ethereum) {
+    alert("MetaMask is not installed.");
+    return;
+  }
+
+  try {
+    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+    const web3 = new Web3(window.ethereum);
+    const totalEth = (parseFloat(unitPriceInEth) * unitsToBuy).toFixed(18);
+    const priceInWei = web3.utils.toWei(totalEth, 'ether');
+    const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+    await contract.methods.buyUnits(propertyId, unitsToBuy).send({
+      from: accounts[0],
+      value: priceInWei
+    });
+
+    alert("Units purchased!");
+    location.reload();
+  } catch (err) {
+    console.error(err);
+    alert("Transaction failed.");
+  }
+}
+</script>
+{% endblock %}

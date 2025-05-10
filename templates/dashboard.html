@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | EquiTerra{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-cards {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+        margin-bottom: 2rem;
+    }
+    
+    .dashboard-card {
+        flex: 1 1 200px;
+        background-color: var(--card-bg);
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .dashboard-card .label {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .dashboard-card .value {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    
+    .badge {
+        display: inline-block;
+        background-color: var(--section-bg);
+        padding: 0.3rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.875rem;
+        color: var(--text-light);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .tab-buttons {
+        display: flex;
+        gap: 1rem;
+        margin: 2rem 0;
+    }
+    
+    .tab-button {
+        padding: 0.5rem 1.25rem;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        border: none;
+        cursor: pointer;
+        background-color: var(--card-bg);
+        color: var(--text-secondary);
+    }
+    
+    .tab-button.active {
+        background-color: white;
+        color: black;
+    }
+    
+    .property-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+    }
+    
+    .property-card {
+        background-color: var(--card-bg);
+        border-radius: 0.75rem;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .property-image {
+        height: 180px;
+        background-color: #1a1a2e;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: #555;
+    }
+    
+    .property-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .property-tag {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background-color: var(--primary-light);
+        color: white;
+        padding: 0.3rem 0.75rem;
+        font-size: 0.75rem;
+        border-radius: 1rem;
+    }
+    
+    .property-info {
+        padding: 1.25rem;
+    }
+    
+    .property-info h2 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+    }
+    
+    .property-info p {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section style="padding: 2rem;">
+    <h1 style="font-size: 2rem; font-weight: bold; margin-bottom: 2rem;">My Dashboard</h1>
+
+    <!-- Dashboard Stats -->
+    <div class="dashboard-cards">
+        <div class="dashboard-card">
+            <p class="label">KYC Status</p>
+            <span class="badge">{{ kyc_status }}</span>
+        </div>
+        <div class="dashboard-card">
+            <p class="label">Properties Owned</p>
+            <p class="value">{{ total_properties_owned }}</p>
+        </div>
+        <div class="dashboard-card">
+            <p class="label">Rental Income (ETH)</p>
+            <p class="value">{{ rental_income|floatformat:2 }}</p>
+        </div>
+        <div class="dashboard-card">
+            <p class="label">Sales Income (ETH)</p>
+            <p class="value">{{ sales_income|floatformat:2 }}</p>
+        </div>
+    </div>
+
+    <!-- Toggle Tabs -->
+    <div class="tab-buttons">
+        <button class="tab-button active" onclick="showTab('owned')">Owned Properties</button>
+        <button class="tab-button" onclick="showTab('purchased')">Purchased Properties</button>
+        <button class="tab-button" onclick="showTab('rented')">Rented Properties</button>
+        <button class="tab-button" onclick="showTab('listed')">Listed Properties</button>
+    </div>
+
+    <!-- Owned Properties -->
+    <div id="owned" class="property-grid tab-content">
+        {% for property in owned_sale %}
+        <div class="property-card">
+            {% if property.image1 %}
+                <div class="property-image"><img src="{{ property.image1.url }}" alt="{{ property.house_type }}"></div>
+            {% else %}
+                <div class="property-image">🖼</div>
+            {% endif %}
+            <span class="property-tag">For Sale</span>
+            <div class="property-info">
+                <h2>{{ property.house_type }}</h2>
+                <p>📍 {{ property.locality }}, {{ property.city }}</p>
+                <p>{{ property.beds }} Beds, {{ property.bathrooms }} Baths</p>
+                <p>{{ property.area }} sqft @ {{ property.area_rate }} ETH/sqft</p>
+                <p>Price: {{ property.sale_price }} ETH</p>
+            </div>
+        </div>
+        {% endfor %}
+        {% for property in owned_rent %}
+        <div class="property-card">
+            {% if property.image1 %}
+                <div class="property-image"><img src="{{ property.image1.url }}" alt="{{ property.house_type }}"></div>
+            {% else %}
+                <div class="property-image">🖼</div>
+            {% endif %}
+            <span class="property-tag">For Rent</span>
+            <div class="property-info">
+                <h2>{{ property.house_type }}</h2>
+                <p>📍 {{ property.locality }}, {{ property.city }}</p>
+                <p>{{ property.beds }} Beds, {{ property.bathrooms }} Baths</p>
+                <p>{{ property.area }} sqft @ {{ property.area_rate }} ETH/sqft</p>
+                <p>Rent: {{ property.rent }} ETH/month</p>
+            </div>
+        </div>
+        {% endfor %}
+        {% if not owned_sale and not owned_rent %}
+        <p>No owned properties.</p>
+        {% endif %}
+    </div>
+
+    <!-- Purchased Properties -->
+    <div id="purchased" class="property-grid tab-content" style="display: none;">
+        {% for transaction in purchased_transactions %}
+        {% if transaction.property_sale %}
+        <div class="property-card">
+            {% if transaction.property_sale.image1 %}
+                <div class="property-image"><img src="{{ transaction.property_sale.image1.url }}" alt="{{ transaction.property_sale.house_type }}"></div>
+            {% else %}
+                <div class="property-image">🖼</div>
+            {% endif %}
+            <span class="property-tag">Purchased</span>
+            <div class="property-info">
+                <h2>{{ transaction.property_sale.house_type }}</h2>
+                <p>📍 {{ transaction.property_sale.locality }}, {{ transaction.property_sale.city }}</p>
+                <p>{{ transaction.property_sale.beds }} Beds, {{ transaction.property_sale.bathrooms }} Baths</p>
+                <p>Units: {{ transaction.units }} @ {{ transaction.amount }} ETH</p>
+                <p>Purchased on: {{ transaction.date|date:"M d, Y" }}</p>
+            </div>
+        </div>
+        {% endif %}
+        {% empty %}
+        <p>No purchased properties.</p>
+        {% endfor %}
+    </div>
+
+    <!-- Rented Properties -->
+    <div id="rented" class="property-grid tab-content" style="display: none;">
+        {% for agreement in rented %}
+        <div class="property-card">
+            {% if agreement.property.image1 %}
+                <div class="property-image"><img src="{{ agreement.property.image1.url }}" alt="{{ agreement.property.house_type }}"></div>
+            {% else %}
+                <div class="property-image">🖼</div>
+            {% endif %}
+            <span class="property-tag">Rented</span>
+            <div class="property-info">
+                <h2>{{ agreement.property.house_type }}</h2>
+                <p>📍 {{ agreement.property.locality }}, {{ agreement.property.city }}</p>
+                <p>{{ agreement.property.beds }} Beds, {{ agreement.property.bathrooms }} Baths</p>
+                <p>Rent: {{ agreement.monthly_rent }} ETH/month</p>
+                <p>From {{ agreement.start_date|date:"M d, Y" }} to {{ agreement.end_date|date:"M d, Y" }}</p>
+            </div>
+        </div>
+        {% empty %}
+        <p>No rented properties.</p>
+        {% endfor %}
+    </div>
+
+    <!-- Listed Properties -->
+    <div id="listed" class="property-grid tab-content" style="display: none;">
+        {% for property in listed_sale %}
+        <div class="property-card">
+            {% if property.image1 %}
+                <div class="property-image"><img src="{{ property.image1.url }}" alt="{{ property.house_type }}"></div>
+            {% else %}
+                <div class="property-image">🖼</div>
+            {% endif %}
+            <span class="property-tag">For Sale ({{ property.units_available }} units)</span>
+            <div class="property-info">
+                <h2>{{ property.house_type }}</h2>
+                <p>📍 {{ property.locality }}, {{ property.city }}</p>
+                <p>{{ property.beds }} Beds, {{ property.bathrooms }} Baths</p>
+                <p>{{ property.area }} sqft @ {{ property.area_rate }} ETH/sqft</p>
+                <p>Unit Price: {{ property.unit_price }} ETH</p>
+            </div>
+        </div>
+        {% endfor %}
+        {% for property in listed_rent %}
+        <div class="property-card">
+            {% if property.image1 %}
+                <div class="property-image"><img src="{{ property.image1.url }}" alt="{{ property.house_type }}"></div>
+            {% else %}
+                <div class="property-image">🖼</div>
+            {% endif %}
+            <span class="property-tag">For Rent</span>
+            <div class="property-info">
+                <h2>{{ property.house_type }}</h2>
+                <p>📍 {{ property.locality }}, {{ property.city }}</p>
+                <p>{{ property.beds }} Beds, {{ property.bathrooms }} Baths</p>
+                <p>{{ property.area }} sqft @ {{ property.area_rate }} ETH/sqft</p>
+                <p>Rent: {{ property.rent }} ETH/month</p>
+            </div>
+        </div>
+        {% endfor %}
+        {% if not listed_sale and not listed_rent %}
+        <p>No listed properties.</p>
+        {% endif %}
+    </div>
+</section>
+
+<script>
+function showTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.style.display = 'none';
+    });
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active');
+    });
+    document.getElementById(tabId).style.display = 'grid';
+    event.currentTarget.classList.add('active');
+}
+</script>
+{% endblock %}

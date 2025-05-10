@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - EquiTerra{% endblock %}
+
+{% block extra_css %}
+<style>
+.register-container {
+  max-width: 500px;
+  margin: 4rem auto;
+  background-color: var(--card-bg);
+  padding: 2.5rem;
+  border-radius: 1.2rem;
+  box-shadow: 0 8px 30px rgba(160, 140, 100, 0.08);
+  animation: fadeIn 0.8s ease-in;
+}
+
+.register-title {
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  color: var(--primary-color);
+  margin-bottom: 1.2rem;
+  font-family: 'Georgia', serif;
+}
+
+.register-subtitle {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background-color: #fff;
+  color: var(--text-color);
+  font-size: 1rem;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.checkbox-container input[type="checkbox"] {
+  margin-top: 4px;
+  accent-color: var(--primary-color);
+}
+
+.register-button {
+  width: 100%;
+  padding: 1rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.register-button:hover {
+  background-color: var(--secondary-color);
+}
+
+.divider {
+  text-align: center;
+  margin: 2rem 0 1.5rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  position: relative;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  height: 1px;
+  width: 40%;
+  background-color: var(--border-color);
+  position: absolute;
+  top: 50%;
+}
+
+.divider::before { left: 0; }
+.divider::after { right: 0; }
+
+.wallet-button {
+  width: 100%;
+  padding: 1rem;
+  background-color: var(--section-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.wallet-button:hover {
+  background-color: #e7dfd6;
+}
+
+.register-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.register-footer a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.register-footer a:hover {
+  text-decoration: underline;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="register-container">
+  <h1 class="register-title">Create Your EquiTerra Account</h1>
+  <p class="register-subtitle">Join the platform that merges real estate, startups, and AI insight</p>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="error-message {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" action="{% url 'register' %}">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="fullname" class="form-label">Full Name</label>
+      {{ form.full_name }}
+    </div>
+
+    <div class="form-group">
+      <label for="email" class="form-label">Email Address</label>
+      {{ form.email }}
+    </div>
+
+    <div class="form-group">
+      <label for="password1" class="form-label">Password</label>
+      {{ form.password1 }}
+    </div>
+
+    <div class="form-group">
+      <label for="password2" class="form-label">Confirm Password</label>
+      {{ form.password2 }}
+    </div>
+
+    <div class="checkbox-container">
+      <input type="checkbox" id="terms" name="terms" required>
+      <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+    </div>
+
+    <button type="submit" class="register-button">Sign Up</button>
+  </form>
+
+  <div class="divider">or</div>
+
+  <button class="wallet-button" onclick="connectWallet()">Register with Wallet</button>
+
+  <div class="register-footer">
+    Already have an account? <a href="{% url 'login' %}">Login</a>
+  </div>
+</div>
+
+<script>
+function connectWallet() {
+  if (typeof window.ethereum !== 'undefined') {
+    window.ethereum.request({ method: 'eth_requestAccounts' })
+      .then(accounts => {
+        alert("Wallet connected: " + accounts[0]);
+      })
+      .catch(err => {
+        alert("Error: " + err.message);
+      });
+  } else {
+    alert("MetaMask not found. Please install it first.");
+  }
+}
+</script>
+{% endblock %}

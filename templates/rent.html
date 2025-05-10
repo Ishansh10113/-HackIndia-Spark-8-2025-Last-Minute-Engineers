@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Rent Properties - EquiTerra{% endblock %}
+
+{% block extra_css %}
+<style>
+.rent-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 2rem;
+  color: var(--primary-color);
+  text-align: center;
+  font-family: 'Georgia', serif;
+}
+
+.search-bar {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 0.6rem;
+  background-color: #fff;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  margin-bottom: 2rem;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgba(200, 180, 140, 0.08);
+}
+
+.property-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.property-card {
+  background-color: var(--card-bg);
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 16px rgba(160, 130, 90, 0.08);
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.property-card:hover {
+  transform: translateY(-6px);
+}
+
+.property-image {
+  height: 180px;
+  background-color: #f3ebe1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.property-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.property-info {
+  padding: 1.5rem;
+}
+
+.property-info h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 0.6rem;
+}
+
+.property-info p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-bottom: 0.3rem;
+}
+
+.property-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 0.8rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="rent-container">
+  <h1>Properties for Rent</h1>
+
+  <form method="GET" action="{% url 'rent_properties' %}">
+    <input
+      type="text"
+      name="search"
+      class="search-bar"
+      placeholder="Search properties by name or location..."
+      value="{{ request.GET.search }}"
+    />
+  </form>
+
+  <div class="property-grid">
+    {% for property in properties %}
+    <a href="{% url 'property_detail' property.id 'rent' %}" style="text-decoration: none;">
+      <div class="property-card">
+        <div class="property-image">
+          {% if property.image1 %}
+            <img src="{{ property.image1.url }}" alt="{{ property.house_type }}">
+          {% else %}
+            <span>🖼 No Image</span>
+          {% endif %}
+        </div>
+        <div class="property-info">
+          <h2>{{ property.house_type }}</h2>
+          <p>📍 {{ property.locality }}, {{ property.city }}</p>
+          <p>Rent: {{ property.rent }} ETH/month</p>
+          <div class="property-meta">
+            <span>{{ property.beds }} Beds</span>
+            <span>{{ property.bathrooms }} Baths</span>
+            <span>{{ property.area }} sqft</span>
+          </div>
+        </div>
+      </div>
+    </a>
+    {% empty %}
+    <p>No rental properties available currently.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
