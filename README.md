@@ -12,13 +12,6 @@ A blockchain-based rental solution that enables seamless crypto rent payments, f
 - 🛠️ **Admin Dashboard** – Manage listings, track analytics, and oversee platform operations.
 - ⛓️ **Ethereum Integration** – Fully integrated with Ethereum blockchain via Web3.
 
-## 📷 Screenshots
-![image](https://github.com/user-attachments/assets/8cd20622-b802-460d-8330-4245952a3bbe)
-![image](https://github.com/user-attachments/assets/443fa4a1-dd0b-477e-abd6-1dcd29a81c21)
-
-
-
-
 ## 🧰 Tech Stack
 
 - **Frontend**: HTML,CSS,JS
